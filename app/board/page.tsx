@@ -1,7 +1,7 @@
-﻿"use client";
+﻿'use client';
 
-import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
+import { FormEvent, useEffect, useState } from 'react';
+import Link from 'next/link';
 
 type Post = {
   id: number;
@@ -14,12 +14,12 @@ const POSTS_PER_PAGE = 3;
 
 export default function BoardPage() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
 
   const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
   const paginatedPosts = posts.slice(
@@ -31,21 +31,21 @@ export default function BoardPage() {
     const loadPosts = async () => {
       try {
         setIsLoading(true);
-        setErrorMessage("");
+        setErrorMessage('');
 
-        const response = await fetch("/api/posts", {
-          cache: "no-store",
+        const response = await fetch('/api/posts', {
+          cache: 'no-store',
         });
 
         if (!response.ok) {
-          throw new Error("Failed to load boards");
+          throw new Error('Failed to load boards');
         }
 
         const data = (await response.json()) as Post[];
         setPosts(data);
       } catch (error) {
         console.error(error);
-        setErrorMessage("게시글을 불러오지 못했습니다.");
+        setErrorMessage('게시글을 불러오지 못했습니다.');
       } finally {
         setIsLoading(false);
       }
@@ -61,18 +61,18 @@ export default function BoardPage() {
     const nextContent = content.trim();
 
     if (!nextTitle || !nextContent) {
-      setErrorMessage("제목과 내용을 모두 입력해주세요.");
+      setErrorMessage('제목과 내용을 모두 입력해주세요.');
       return;
     }
 
     try {
       setIsSubmitting(true);
-      setErrorMessage("");
+      setErrorMessage('');
 
-      const response = await fetch("/api/posts", {
-        method: "POST",
+      const response = await fetch('/api/posts', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           title: nextTitle,
@@ -82,19 +82,21 @@ export default function BoardPage() {
 
       const data = (await response.json()) as Post | { message?: string };
 
-      if (!response.ok || !("id" in data)) {
+      if (!response.ok || !('id' in data)) {
         throw new Error(
-          "message" in data ? data.message ?? "Failed to create board" : "Failed to create board",
+          'message' in data
+            ? (data.message ?? 'Failed to create board')
+            : 'Failed to create board',
         );
       }
 
       setPosts((currentPosts) => [data, ...currentPosts]);
       setCurrentPage(1);
-      setTitle("");
-      setContent("");
+      setTitle('');
+      setContent('');
     } catch (error) {
       console.error(error);
-      setErrorMessage("게시글을 저장하지 못했습니다.");
+      setErrorMessage('게시글을 저장하지 못했습니다.');
     } finally {
       setIsSubmitting(false);
     }
@@ -111,7 +113,7 @@ export default function BoardPage() {
               </p>
               <div className="space-y-2">
                 <h1 className="text-4xl font-semibold tracking-tight text-stone-950">
-                  제목과 내용으로 작성하는 게시판
+                  자유롭게 작성 해주세요.
                 </h1>
                 <p className="max-w-2xl text-sm leading-6 text-stone-600">
                   글을 작성하면 아래 목록의 가장 위에 바로 추가됩니다.
@@ -163,7 +165,7 @@ export default function BoardPage() {
                 disabled={isSubmitting}
                 className="inline-flex h-12 w-full items-center justify-center rounded-full bg-amber-400 px-5 text-sm font-semibold text-stone-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isSubmitting ? "등록 중..." : "등록하기"}
+                {isSubmitting ? '등록 중...' : '등록하기'}
               </button>
             </form>
 
@@ -235,8 +237,8 @@ export default function BoardPage() {
                         onClick={() => setCurrentPage(pageNumber)}
                         className={`inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
                           isActive
-                            ? "bg-stone-950 text-white"
-                            : "border border-stone-300 text-stone-700 hover:border-stone-900 hover:text-stone-950"
+                            ? 'bg-stone-950 text-white'
+                            : 'border border-stone-300 text-stone-700 hover:border-stone-900 hover:text-stone-950'
                         }`}
                       >
                         {pageNumber}
