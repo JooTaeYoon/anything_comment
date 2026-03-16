@@ -1,29 +1,25 @@
 ﻿"use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 
 type Post = {
   id: number;
   title: string;
   content: string;
+  created_at: string;
 };
-
-const initialPosts: Post[] = [
-  {
-    id: 1,
-    title: "첫 번째 게시글",
-    content: "제목과 내용을 입력해서 새 글을 추가할 수 있습니다.",
-  },
-];
 
 const POSTS_PER_PAGE = 3;
 
 export default function BoardPage() {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
   const paginatedPosts = posts.slice(
@@ -31,28 +27,77 @@ export default function BoardPage() {
     currentPage * POSTS_PER_PAGE,
   );
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        setIsLoading(true);
+        setErrorMessage("");
+
+        const response = await fetch("/api/posts", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to load boards");
+        }
+
+        const data = (await response.json()) as Post[];
+        setPosts(data);
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("게시글을 불러오지 못했습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadPosts();
+  }, []);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const nextTitle = title.trim();
     const nextContent = content.trim();
 
     if (!nextTitle || !nextContent) {
+      setErrorMessage("제목과 내용을 모두 입력해주세요.");
       return;
     }
 
-    setPosts((currentPosts) => [
-      {
-        id: Date.now(),
-        title: nextTitle,
-        content: nextContent,
-      },
-      ...currentPosts,
-    ]);
+    try {
+      setIsSubmitting(true);
+      setErrorMessage("");
 
-    setCurrentPage(1);
-    setTitle("");
-    setContent("");
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: nextTitle,
+          content: nextContent,
+        }),
+      });
+
+      const data = (await response.json()) as Post | { message?: string };
+
+      if (!response.ok || !("id" in data)) {
+        throw new Error(
+          "message" in data ? data.message ?? "Failed to create board" : "Failed to create board",
+        );
+      }
+
+      setPosts((currentPosts) => [data, ...currentPosts]);
+      setCurrentPage(1);
+      setTitle("");
+      setContent("");
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("게시글을 저장하지 못했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -115,11 +160,16 @@ export default function BoardPage() {
 
               <button
                 type="submit"
-                className="inline-flex h-12 w-full items-center justify-center rounded-full bg-amber-400 px-5 text-sm font-semibold text-stone-950 transition hover:bg-amber-300"
+                disabled={isSubmitting}
+                className="inline-flex h-12 w-full items-center justify-center rounded-full bg-amber-400 px-5 text-sm font-semibold text-stone-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                등록하기
+                {isSubmitting ? "등록 중..." : "등록하기"}
               </button>
             </form>
+
+            {errorMessage ? (
+              <p className="mt-4 text-sm text-amber-300">{errorMessage}</p>
+            ) : null}
           </section>
 
           <section className="rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_18px_50px_rgba(28,25,23,0.08)]">
@@ -137,68 +187,83 @@ export default function BoardPage() {
               </p>
             </div>
 
-            <div className="space-y-4">
-              {paginatedPosts.map((post) => (
-                <article
-                  key={post.id}
-                  className="rounded-3xl border border-stone-200 bg-stone-50 px-5 py-4"
-                >
-                  <h3 className="text-lg font-semibold text-stone-950">
-                    {post.title}
-                  </h3>
-                  <div className="relative mt-3 overflow-hidden rounded-2xl bg-white/70 px-4 py-3">
-                    <p className="max-h-16 overflow-hidden whitespace-pre-wrap text-sm leading-6 text-stone-700">
-                      {post.content}
-                    </p>
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-stone-50 via-stone-50/90 to-transparent" />
-                  </div>
-                </article>
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="rounded-3xl border border-dashed border-stone-200 bg-stone-50 px-5 py-10 text-center text-sm text-stone-500">
+                게시글을 불러오는 중입니다.
+              </div>
+            ) : paginatedPosts.length > 0 ? (
+              <>
+                <div className="space-y-4">
+                  {paginatedPosts.map((post) => (
+                    <article
+                      key={post.id}
+                      className="rounded-3xl border border-stone-200 bg-stone-50 px-5 py-4"
+                    >
+                      <h3 className="text-lg font-semibold text-stone-950">
+                        {post.title}
+                      </h3>
+                      <div className="relative mt-3 overflow-hidden rounded-2xl bg-white/70 px-4 py-3">
+                        <p className="max-h-16 overflow-hidden whitespace-pre-wrap text-sm leading-6 text-stone-700">
+                          {post.content}
+                        </p>
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-stone-50 via-stone-50/90 to-transparent" />
+                      </div>
+                    </article>
+                  ))}
+                </div>
 
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 border-t border-stone-200 pt-4">
-              <button
-                type="button"
-                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                disabled={currentPage === 1}
-                className="inline-flex h-10 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-950 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                이전
-              </button>
-
-              {Array.from({ length: totalPages }, (_, index) => {
-                const pageNumber = index + 1;
-                const isActive = pageNumber === currentPage;
-
-                return (
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-2 border-t border-stone-200 pt-4">
                   <button
-                    key={pageNumber}
                     type="button"
-                    onClick={() => setCurrentPage(pageNumber)}
-                    className={`inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
-                      isActive
-                        ? "bg-stone-950 text-white"
-                        : "border border-stone-300 text-stone-700 hover:border-stone-900 hover:text-stone-950"
-                    }`}
+                    onClick={() =>
+                      setCurrentPage((page) => Math.max(1, page - 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-950 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {pageNumber}
+                    이전
                   </button>
-                );
-              })}
 
-              <button
-                type="button"
-                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                disabled={currentPage === totalPages}
-                className="inline-flex h-10 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-950 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                다음
-              </button>
-            </div>
+                  {Array.from({ length: totalPages }, (_, index) => {
+                    const pageNumber = index + 1;
+                    const isActive = pageNumber === currentPage;
+
+                    return (
+                      <button
+                        key={pageNumber}
+                        type="button"
+                        onClick={() => setCurrentPage(pageNumber)}
+                        className={`inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
+                          isActive
+                            ? "bg-stone-950 text-white"
+                            : "border border-stone-300 text-stone-700 hover:border-stone-900 hover:text-stone-950"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage((page) => Math.min(totalPages, page + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-950 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    다음
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="rounded-3xl border border-dashed border-stone-200 bg-stone-50 px-5 py-10 text-center text-sm text-stone-500">
+                아직 작성된 게시글이 없습니다.
+              </div>
+            )}
           </section>
         </div>
       </div>
     </main>
   );
 }
-
