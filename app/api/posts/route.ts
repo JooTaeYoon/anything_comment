@@ -13,11 +13,11 @@ export async function GET() {
   try {
     await ensureBoardsTable();
 
-    const boards = await sql<BoardRow[]>`
+    const boards = (await sql`
       SELECT id, title, content, created_at
       FROM boards
       ORDER BY created_at DESC, id DESC
-    `;
+    `) as BoardRow[];
 
     return NextResponse.json(boards);
   } catch (error) {
@@ -45,11 +45,11 @@ export async function POST(request: Request) {
 
     await ensureBoardsTable();
 
-    const [board] = await sql<BoardRow[]>`
+    const [board] = (await sql`
       INSERT INTO boards (title, content)
       VALUES (${title}, ${content})
       RETURNING id, title, content, created_at
-    `;
+    `) as BoardRow[];
 
     return NextResponse.json(board, { status: 201 });
   } catch (error) {
