@@ -18,3 +18,12 @@ export async function ensureBoardsTable() {
     )
   `;
 }
+
+export async function ensureSiteMetricsTable() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS site_metrics (
+      metric_key TEXT PRIMARY KEY,
+      metric_value BIGINT NOT NULL DEFAULT 0
+    )
+  `;
+}
