@@ -14,7 +14,9 @@ export default function Home() {
                 안녕하세요.
               </h1>
               <p className="max-w-2xl whitespace-pre-line text-base leading-8 text-stone-600 sm:text-lg">
-                여러분들의 고민 및 불평 불만 작성 해주세요
+                여러분들의 고민 및 불평 불만 작성 해주세요. 해당 게시판은
+                익명이고, 작성자가 작성한 내용 외 어떠한 정보도 저장 하지
+                않습니다.
               </p>
             </div>
             <Link
@@ -22,7 +24,6 @@ export default function Home() {
               className="inline-flex items-center gap-3 rounded-full bg-stone-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-800"
             >
               작성 하러 가기
-              <span aria-hidden="true">-&gt;</span>
             </Link>
           </div>
         </section>
