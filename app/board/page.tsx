@@ -113,7 +113,7 @@ export default function BoardPage() {
               </p>
               <div className="space-y-2">
                 <h1 className="text-4xl font-semibold tracking-tight text-stone-950">
-                  자유롭게 작성 해주세요.
+                  불평 | 불만 | 불편 했던 이용 후기들 자유롭게 작성 해주세요.
                 </h1>
                 <p className="max-w-2xl text-sm leading-6 text-stone-600">
                   글을 작성하면 아래 목록의 가장 위에 바로 추가됩니다.
