@@ -17,10 +17,19 @@ const initialPosts: Post[] = [
   },
 ];
 
+const POSTS_PER_PAGE = 3;
+
 export default function BoardPage() {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
+  const paginatedPosts = posts.slice(
+    (currentPage - 1) * POSTS_PER_PAGE,
+    currentPage * POSTS_PER_PAGE,
+  );
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -41,6 +50,7 @@ export default function BoardPage() {
       ...currentPosts,
     ]);
 
+    setCurrentPage(1);
     setTitle("");
     setContent("");
   };
@@ -122,10 +132,13 @@ export default function BoardPage() {
                   총 {posts.length}개의 게시글
                 </p>
               </div>
+              <p className="text-sm text-stone-500">
+                {currentPage} / {totalPages} 페이지
+              </p>
             </div>
 
             <div className="space-y-4">
-              {posts.map((post) => (
+              {paginatedPosts.map((post) => (
                 <article
                   key={post.id}
                   className="rounded-3xl border border-stone-200 bg-stone-50 px-5 py-4"
@@ -133,11 +146,54 @@ export default function BoardPage() {
                   <h3 className="text-lg font-semibold text-stone-950">
                     {post.title}
                   </h3>
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-stone-700">
-                    {post.content}
-                  </p>
+                  <div className="relative mt-3 overflow-hidden rounded-2xl bg-white/70 px-4 py-3">
+                    <p className="max-h-16 overflow-hidden whitespace-pre-wrap text-sm leading-6 text-stone-700">
+                      {post.content}
+                    </p>
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-stone-50 via-stone-50/90 to-transparent" />
+                  </div>
                 </article>
               ))}
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 border-t border-stone-200 pt-4">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                disabled={currentPage === 1}
+                className="inline-flex h-10 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-950 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                이전
+              </button>
+
+              {Array.from({ length: totalPages }, (_, index) => {
+                const pageNumber = index + 1;
+                const isActive = pageNumber === currentPage;
+
+                return (
+                  <button
+                    key={pageNumber}
+                    type="button"
+                    onClick={() => setCurrentPage(pageNumber)}
+                    className={`inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
+                      isActive
+                        ? "bg-stone-950 text-white"
+                        : "border border-stone-300 text-stone-700 hover:border-stone-900 hover:text-stone-950"
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                disabled={currentPage === totalPages}
+                className="inline-flex h-10 items-center justify-center rounded-full border border-stone-300 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-950 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                다음
+              </button>
             </div>
           </section>
         </div>
