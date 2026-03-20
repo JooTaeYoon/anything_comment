@@ -32,6 +32,7 @@ function createNeonDodgeScene(
 
     preload() {
       const graphics = this.add.graphics();
+      this.load.image("playerSprite", "/img/my-character.png");
 
       graphics.fillStyle(0x62f3ff, 1);
       graphics.fillCircle(16, 16, 16);
@@ -43,11 +44,6 @@ function createNeonDodgeScene(
       graphics.generateTexture("hazard", 28, 28);
       graphics.clear();
 
-      graphics.fillStyle(0x9bff7a, 1);
-      graphics.fillRoundedRect(0, 0, 42, 24, 10);
-      graphics.generateTexture("player", 42, 24);
-      graphics.clear();
-
       graphics.fillStyle(0x121826, 1);
       graphics.fillRect(0, 0, 8, 64);
       graphics.generateTexture("lane", 8, 64);
@@ -56,6 +52,41 @@ function createNeonDodgeScene(
 
     create() {
       this.cameras.main.setBackgroundColor("#090c14");
+
+      const sourceImage = this.textures.get("playerSprite").getSourceImage() as CanvasImageSource & {
+        width: number;
+        height: number;
+      };
+      const processedTexture = this.textures.createCanvas(
+        "playerSpriteCutout",
+        sourceImage.width,
+        sourceImage.height,
+      );
+      if (!processedTexture) {
+        throw new Error("Failed to create processed Phaser texture.");
+      }
+      const processedContext = processedTexture.getContext();
+      processedContext.drawImage(sourceImage, 0, 0);
+      const imageData = processedContext.getImageData(
+        0,
+        0,
+        sourceImage.width,
+        sourceImage.height,
+      );
+      const pixels = imageData.data;
+
+      for (let index = 0; index < pixels.length; index += 4) {
+        const red = pixels[index];
+        const green = pixels[index + 1];
+        const blue = pixels[index + 2];
+
+        if (red > 245 && green > 245 && blue > 245) {
+          pixels[index + 3] = 0;
+        }
+      }
+
+      processedContext.putImageData(imageData, 0, 0);
+      processedTexture.refresh();
 
       for (let i = 0; i < 7; i += 1) {
         const lane = this.add.image(60 + i * 60, 300, "lane");
@@ -70,10 +101,12 @@ function createNeonDodgeScene(
         fontStyle: "700",
       });
 
-      this.player = this.physics.add.image(240, 570, "player");
+      this.player = this.physics.add.image(240, 560, "playerSpriteCutout");
+      this.player.setDisplaySize(72, 72);
       this.player.setCollideWorldBounds(true);
       this.player.setDragX(1600);
       this.player.setMaxVelocity(360, 0);
+      this.player.setDepth(10);
 
       this.hazards = this.physics.add.group();
       this.orbs = this.physics.add.group();
@@ -246,16 +279,16 @@ export default function PhaserPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0f1e35_0%,#080b14_55%,#030406_100%)] px-3 py-4 text-white sm:px-6 sm:py-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 sm:gap-6">
-        <section className="rounded-[30px] border border-cyan-200/10 bg-white/6 p-5 shadow-[0_28px_100px_rgba(0,0,0,0.35)] backdrop-blur sm:p-8">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0f1e35_0%,#080b14_55%,#030406_100%)] px-3 py-3 pb-32 text-white sm:px-6 sm:py-8 sm:pb-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 sm:gap-6">
+        <section className="rounded-[26px] border border-cyan-200/10 bg-white/6 p-4 shadow-[0_28px_100px_rgba(0,0,0,0.35)] backdrop-blur sm:rounded-[30px] sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
               <p className="text-sm font-semibold uppercase tracking-[0.32em] text-cyan-200">
                 Phaser Demo
               </p>
               <div className="space-y-2">
-                <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Neon Dodge</h1>
+                <h1 className="text-3xl font-black tracking-tight sm:text-5xl">Neon Dodge</h1>
                 <p className="max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
                   A small Phaser arcade prototype with physics, spawning hazards, collectibles, and touch controls.
                 </p>
@@ -279,13 +312,24 @@ export default function PhaserPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-[1fr_0.8fr]">
-          <div className="rounded-[30px] border border-cyan-200/10 bg-white/6 p-3 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur sm:p-5">
+        <section className="grid gap-3 xl:grid-cols-[1fr_0.8fr] sm:gap-4">
+          <div className="rounded-[26px] border border-cyan-200/10 bg-white/6 p-2 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur sm:rounded-[30px] sm:p-5">
             <div className="overflow-hidden rounded-[26px] border border-cyan-200/10 bg-[linear-gradient(180deg,#040812_0%,#07111e_100%)]">
-              <div ref={containerRef} className="mx-auto aspect-[3/4] w-full max-w-[480px]" />
+              <div
+                ref={containerRef}
+                className="mx-auto h-[min(52dvh,520px)] w-full max-w-[390px] touch-none sm:h-[640px] sm:max-w-[480px]"
+              />
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:hidden">
+            <div className="mt-3 rounded-[22px] border border-cyan-200/10 bg-white/6 p-3 sm:hidden">
+              <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                <div className="rounded-full bg-white/8 px-3 py-2">Score {score}</div>
+                <div className="rounded-full bg-white/8 px-3 py-2">Lives {lives}</div>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-white/72">{status}</p>
+            </div>
+
+            <div className="mt-4 hidden grid-cols-2 gap-3 sm:grid">
               <button
                 type="button"
                 onPointerDown={() => {
@@ -320,7 +364,7 @@ export default function PhaserPage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <section className="rounded-[30px] border border-cyan-200/10 bg-white/6 p-5 backdrop-blur">
+            <section className="hidden rounded-[30px] border border-cyan-200/10 bg-white/6 p-5 backdrop-blur sm:block">
               <div className="flex flex-wrap gap-2 text-sm font-semibold">
                 <div className="rounded-full bg-white/8 px-4 py-2">Score {score}</div>
                 <div className="rounded-full bg-white/8 px-4 py-2">Lives {lives}</div>
@@ -329,7 +373,7 @@ export default function PhaserPage() {
               <p className="mt-4 text-sm leading-6 text-white/72">{status}</p>
             </section>
 
-            <section className="rounded-[30px] border border-cyan-200/10 bg-white/6 p-5 backdrop-blur">
+            <section className="hidden rounded-[30px] border border-cyan-200/10 bg-white/6 p-5 backdrop-blur xl:block">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
                 About Phaser
               </p>
@@ -340,7 +384,7 @@ export default function PhaserPage() {
               </div>
             </section>
 
-            <section className="rounded-[30px] border border-cyan-200/10 bg-white/6 p-5 backdrop-blur">
+            <section className="hidden rounded-[30px] border border-cyan-200/10 bg-white/6 p-5 backdrop-blur xl:block">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
                 Controls
               </p>
@@ -350,6 +394,41 @@ export default function PhaserPage() {
                 <p>Goal: Collect cyan orbs and dodge red blocks.</p>
               </div>
             </section>
+          </div>
+        </section>
+
+        <section className="fixed inset-x-0 bottom-0 z-40 border-t border-cyan-200/10 bg-[#060c16dd] p-3 backdrop-blur sm:hidden">
+          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-3">
+            <button
+              type="button"
+              onPointerDown={() => {
+                leftPressedRef.current = true;
+              }}
+              onPointerUp={() => {
+                leftPressedRef.current = false;
+              }}
+              onPointerLeave={() => {
+                leftPressedRef.current = false;
+              }}
+              className="inline-flex h-16 items-center justify-center rounded-[22px] border border-white/15 bg-white/8 text-base font-black text-white transition active:scale-[0.98]"
+            >
+              LEFT
+            </button>
+            <button
+              type="button"
+              onPointerDown={() => {
+                rightPressedRef.current = true;
+              }}
+              onPointerUp={() => {
+                rightPressedRef.current = false;
+              }}
+              onPointerLeave={() => {
+                rightPressedRef.current = false;
+              }}
+              className="inline-flex h-16 items-center justify-center rounded-[22px] bg-cyan-300 text-base font-black text-stone-950 transition active:scale-[0.98]"
+            >
+              RIGHT
+            </button>
           </div>
         </section>
       </div>
