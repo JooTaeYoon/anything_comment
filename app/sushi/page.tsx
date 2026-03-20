@@ -213,7 +213,7 @@ export default function SushiPage() {
   const [timeLeft, setTimeLeft] = useState(ORDER_TIME);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [feedback, setFeedback] = useState(TEXT.startHint);
+  const [feedback, setFeedback] = useState<string>(TEXT.startHint);
   const [servedDish, setServedDish] = useState<string | null>(null);
   const nextOrderTimerRef = useRef<number | null>(null);
 
