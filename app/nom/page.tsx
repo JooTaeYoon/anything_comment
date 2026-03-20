@@ -29,19 +29,9 @@ const BASE_SPEED = 7;
 const MAX_SPEED = 16;
 const STORAGE_KEY = "nom-best-score";
 
-const readBestScore = () => {
-  if (typeof window === "undefined") {
-    return 0;
-  }
-
-  const storedBest = window.localStorage.getItem(STORAGE_KEY);
-  const parsedBest = storedBest ? Number.parseInt(storedBest, 10) : 0;
-
-  return Number.isFinite(parsedBest) ? parsedBest : 0;
-};
-
 export default function NomPage() {
-  const [bestScore, setBestScore] = useState(readBestScore);
+  const [bestScore, setBestScore] = useState(0);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [snapshot, setSnapshot] = useState<GameSnapshot>({
     playerY: 0,
     score: 0,
@@ -61,7 +51,7 @@ export default function NomPage() {
   const runningRef = useRef(false);
   const scoreRef = useRef(0);
   const speedRef = useRef(BASE_SPEED);
-  const bestScoreRef = useRef(readBestScore());
+  const bestScoreRef = useRef(0);
   const gameOverRef = useRef(false);
 
   const syncSnapshot = useCallback((overrides?: Partial<GameSnapshot>) => {
@@ -79,6 +69,16 @@ export default function NomPage() {
   }, []);
 
   useEffect(() => {
+    const storedBest = window.localStorage.getItem(STORAGE_KEY);
+    const parsedBest = storedBest ? Number.parseInt(storedBest, 10) : 0;
+
+    if (Number.isFinite(parsedBest)) {
+      bestScoreRef.current = parsedBest;
+      setBestScore(parsedBest);
+    }
+
+    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
+
     return () => {
       if (animationRef.current !== null) {
         window.cancelAnimationFrame(animationRef.current);
@@ -263,9 +263,9 @@ export default function NomPage() {
   const skylineOffset = -(roundedScore * 0.6) % 240;
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#fff4cc_0%,#ffd074_22%,#ff9a3d_55%,#18181b_100%)] px-4 py-8 text-stone-950">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <section className="rounded-[32px] border border-white/30 bg-black/25 p-6 text-white shadow-[0_30px_100px_rgba(0,0,0,0.28)] backdrop-blur md:p-8">
+    <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#fff4cc_0%,#ffd074_22%,#ff9a3d_55%,#18181b_100%)] px-3 py-4 text-stone-950 sm:px-4 sm:py-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 sm:gap-6">
+        <section className="rounded-[28px] border border-white/30 bg-black/25 p-5 text-white shadow-[0_30px_100px_rgba(0,0,0,0.28)] backdrop-blur md:rounded-[32px] md:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="space-y-3">
               <p className="text-sm font-semibold uppercase tracking-[0.34em] text-amber-200">
@@ -275,6 +275,9 @@ export default function NomPage() {
                 <h1 className="text-4xl font-black tracking-tight md:text-6xl">NOM</h1>
                 <p className="max-w-2xl text-sm leading-6 text-white/78 md:text-base">
                   Old-school flash runner inspired by the classic one-button Korean browser game.
+                </p>
+                <p className="text-xs font-medium text-white/65 sm:hidden">
+                  Tap the jump button for a cleaner mobile control layout.
                 </p>
               </div>
             </div>
@@ -297,9 +300,9 @@ export default function NomPage() {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-white/25 bg-black/35 p-4 shadow-[0_25px_100px_rgba(0,0,0,0.28)] backdrop-blur md:p-6">
+        <section className="rounded-[28px] border border-white/25 bg-black/35 p-3 shadow-[0_25px_100px_rgba(0,0,0,0.28)] backdrop-blur md:rounded-[32px] md:p-6">
           <div
-            className="relative overflow-hidden rounded-[28px] border border-white/15 bg-[linear-gradient(180deg,#2f4858_0%,#193244_45%,#0b1620_100%)]"
+            className="relative overflow-hidden rounded-[24px] border border-white/15 bg-[linear-gradient(180deg,#2f4858_0%,#193244_45%,#0b1620_100%)] select-none [touch-action:manipulation] md:rounded-[28px]"
             onPointerDown={jump}
           >
             <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,#fff7d6_0%,#ffd788_18%,transparent_62%)] opacity-85" />
@@ -312,15 +315,15 @@ export default function NomPage() {
                 transform: `translateX(${skylineOffset}px)`,
               }}
             />
-            <div className="relative h-[420px] w-full">
-              <div className="absolute left-5 top-5 z-20 flex flex-wrap gap-3 text-sm font-semibold text-white">
-                <div className="rounded-full bg-white/12 px-4 py-2 backdrop-blur">
+            <div className="relative h-[320px] w-full sm:h-[420px]">
+              <div className="absolute left-3 top-3 z-20 flex flex-wrap gap-2 text-xs font-semibold text-white sm:left-5 sm:top-5 sm:gap-3 sm:text-sm">
+                <div className="rounded-full bg-white/12 px-3 py-2 backdrop-blur sm:px-4">
                   Score {roundedScore}
                 </div>
-                <div className="rounded-full bg-white/12 px-4 py-2 backdrop-blur">
+                <div className="rounded-full bg-white/12 px-3 py-2 backdrop-blur sm:px-4">
                   Best {bestScore}
                 </div>
-                <div className="rounded-full bg-white/12 px-4 py-2 backdrop-blur">
+                <div className="rounded-full bg-white/12 px-3 py-2 backdrop-blur sm:px-4">
                   Speed {snapshot.speed.toFixed(1)}
                 </div>
               </div>
@@ -336,7 +339,7 @@ export default function NomPage() {
                 }}
               >
                 <div className="absolute bottom-0 h-[18px] w-[42px] rounded-full bg-black/25 blur-md" />
-                <div className="relative h-[54px] w-[42px]">
+                <div className="relative h-[48px] w-[38px] sm:h-[54px] sm:w-[42px]">
                   <div className="absolute left-3 top-0 h-4 w-4 rounded-full bg-[#fff2d6]" />
                   <div className="absolute left-1 top-3 h-8 w-10 rounded-[16px] bg-[#f3f4f6]" />
                   <div className="absolute right-2 top-5 h-1.5 w-1.5 rounded-full bg-stone-950" />
@@ -349,7 +352,7 @@ export default function NomPage() {
               {snapshot.obstacles.map((obstacle) => (
                 <div
                   key={obstacle.id}
-                  className="absolute bottom-[88px] rounded-t-[14px] border border-white/10 bg-[linear-gradient(180deg,#2b2d42_0%,#0f172a_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]"
+                  className="absolute bottom-[88px] rounded-t-[12px] border border-white/10 bg-[linear-gradient(180deg,#2b2d42_0%,#0f172a_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] sm:rounded-t-[14px]"
                   style={{
                     left: `${(obstacle.x / GAME_WIDTH) * 100}%`,
                     width: `${obstacle.width}px`,
@@ -374,13 +377,13 @@ export default function NomPage() {
 
               {!snapshot.isRunning && !snapshot.isGameOver ? (
                 <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/30 px-6 text-center">
-                  <div className="max-w-md rounded-[28px] border border-white/15 bg-black/35 p-8 text-white backdrop-blur">
+                  <div className="max-w-md rounded-[24px] border border-white/15 bg-black/35 p-6 text-white backdrop-blur sm:rounded-[28px] sm:p-8">
                     <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-200">
                       Start
                     </p>
-                    <h2 className="mt-3 text-3xl font-black">Press space to run</h2>
+                    <h2 className="mt-3 text-2xl font-black sm:text-3xl">Press space to run</h2>
                     <p className="mt-3 text-sm leading-6 text-white/75">
-                      The runner moves automatically. Jump just before each obstacle to keep going.
+                      The runner moves automatically. {isTouchDevice ? "Tap Jump on mobile." : "Jump just before each obstacle to keep going."}
                     </p>
                   </div>
                 </div>
@@ -388,13 +391,13 @@ export default function NomPage() {
 
               {snapshot.isGameOver ? (
                 <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/45 px-6 text-center">
-                  <div className="max-w-md rounded-[28px] border border-white/15 bg-black/55 p-8 text-white backdrop-blur">
+                  <div className="max-w-md rounded-[24px] border border-white/15 bg-black/55 p-6 text-white backdrop-blur sm:rounded-[28px] sm:p-8">
                     <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-200">
                       Game Over
                     </p>
-                    <h2 className="mt-3 text-3xl font-black">Score {roundedScore}</h2>
+                    <h2 className="mt-3 text-2xl font-black sm:text-3xl">Score {roundedScore}</h2>
                     <p className="mt-3 text-sm leading-6 text-white/75">
-                      Press R or use the button below to restart.
+                      {isTouchDevice ? "Use the buttons below to restart." : "Press R or use the button below to restart."}
                     </p>
                     <button
                       type="button"
@@ -410,6 +413,23 @@ export default function NomPage() {
           </div>
         </section>
 
+        <section className="grid gap-3 sm:hidden">
+          <button
+            type="button"
+            onClick={jump}
+            className="inline-flex h-16 w-full items-center justify-center rounded-[22px] bg-amber-300 text-base font-black text-stone-950 shadow-[0_18px_50px_rgba(0,0,0,0.22)] transition active:scale-[0.98]"
+          >
+            {snapshot.isRunning ? "JUMP" : "START / JUMP"}
+          </button>
+          <button
+            type="button"
+            onClick={startGame}
+            className="inline-flex h-12 w-full items-center justify-center rounded-[18px] border border-white/25 bg-black/25 text-sm font-semibold text-white transition active:scale-[0.99]"
+          >
+            Restart Run
+          </button>
+        </section>
+
         <section className="grid gap-4 md:grid-cols-3">
           <article className="rounded-[28px] border border-white/20 bg-white/12 p-5 text-white backdrop-blur">
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-200">
@@ -417,7 +437,7 @@ export default function NomPage() {
             </p>
             <h2 className="mt-3 text-2xl font-black">One button timing</h2>
             <p className="mt-3 text-sm leading-6 text-white/75">
-              Use Space, Up, W, or tap/click the game area to jump.
+              Use Space, Up, W, or tap/click the game area to jump. Mobile also has a dedicated jump button.
             </p>
           </article>
 
