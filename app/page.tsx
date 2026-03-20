@@ -62,7 +62,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <Link
                 href="/board"
                 className="group rounded-[28px] border border-stone-200 bg-stone-950 px-6 py-6 text-white transition hover:bg-stone-900"
@@ -99,6 +99,19 @@ export default function Home() {
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight">Play Sushi Tap</h2>
                 <p className="mt-3 text-sm leading-6 text-stone-700">
                   Take guest orders and build sushi by tapping large mobile-friendly ingredients.
+                </p>
+              </Link>
+
+              <Link
+                href="/exit8"
+                className="group rounded-[28px] border border-cyan-200/70 bg-[linear-gradient(135deg,#e8f7ff_0%,#b7dfff_40%,#7aa5c9_100%)] px-6 py-6 text-stone-950 transition hover:shadow-[0_20px_60px_rgba(14,165,233,0.2)]"
+              >
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-950">
+                  3D Prototype
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight">Play Exit 8</h2>
+                <p className="mt-3 text-sm leading-6 text-stone-700">
+                  Walk a looping corridor in a Three.js prototype and judge whether an anomaly is present.
                 </p>
               </Link>
             </div>
