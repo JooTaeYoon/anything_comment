@@ -64,7 +64,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
               <Link
                 href="/board"
                 className="group rounded-[28px] border border-stone-200 bg-stone-950 px-6 py-6 text-white transition hover:bg-stone-900"
@@ -109,6 +109,21 @@ export default function Home() {
                 <p className="mt-3 text-sm leading-6 text-stone-700">
                   Walk a looping corridor in a Three.js prototype and judge
                   whether an anomaly is present.
+                </p>
+              </Link>
+
+              <Link
+                href="/phaser"
+                className="group rounded-[28px] border border-cyan-200/70 bg-[linear-gradient(135deg,#dffcff_0%,#98f5ff_40%,#56c8e6_100%)] px-6 py-6 text-stone-950 transition hover:shadow-[0_20px_60px_rgba(6,182,212,0.2)]"
+              >
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-950">
+                  2D Game
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                  Play Phaser Demo
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-stone-700">
+                  Try a small arcade prototype built with Phaser instead of pure CSS layout.
                 </p>
               </Link>
             </div>
