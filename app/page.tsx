@@ -15,7 +15,8 @@ export default function Home() {
   useEffect(() => {
     const syncVisitCount = async () => {
       try {
-        const hasCountedVisit = window.sessionStorage.getItem(VISIT_STORAGE_KEY) === "true";
+        const hasCountedVisit =
+          window.sessionStorage.getItem(VISIT_STORAGE_KEY) === "true";
         const response = await fetch("/api/visits", {
           method: hasCountedVisit ? "GET" : "POST",
           cache: "no-store",
@@ -57,8 +58,9 @@ export default function Home() {
                 Hello.
               </h1>
               <p className="max-w-2xl whitespace-pre-line text-base leading-8 text-stone-600 sm:text-lg">
-                Leave your concerns, complaints, or anything on your mind. The board is anonymous
-                and does not store information beyond the text you submit.
+                Leave your concerns, complaints, or anything on your mind. The
+                board is anonymous and does not store information beyond the
+                text you submit.
               </p>
             </div>
 
@@ -70,22 +72,11 @@ export default function Home() {
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-300">
                   Board
                 </p>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight">Open board</h2>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                  Open board
+                </h2>
                 <p className="mt-3 text-sm leading-6 text-stone-300">
                   Write anonymous posts and browse the latest entries.
-                </p>
-              </Link>
-
-              <Link
-                href="/nom"
-                className="group rounded-[28px] border border-amber-200 bg-[linear-gradient(135deg,#fff7d6_0%,#ffd17c_50%,#ff9f57_100%)] px-6 py-6 text-stone-950 transition hover:shadow-[0_20px_60px_rgba(245,158,11,0.28)]"
-              >
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-900">
-                  Flash Game
-                </p>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight">Play NOM</h2>
-                <p className="mt-3 text-sm leading-6 text-stone-700">
-                  Jump through an old-school browser runner inspired by the classic flash game.
                 </p>
               </Link>
 
@@ -96,9 +87,12 @@ export default function Home() {
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-orange-900">
                   Food Game
                 </p>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight">Play Sushi Tap</h2>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                  Play Sushi Tap
+                </h2>
                 <p className="mt-3 text-sm leading-6 text-stone-700">
-                  Take guest orders and build sushi by tapping large mobile-friendly ingredients.
+                  Take guest orders and build sushi by tapping large
+                  mobile-friendly ingredients.
                 </p>
               </Link>
 
@@ -109,9 +103,12 @@ export default function Home() {
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-950">
                   3D Prototype
                 </p>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight">Play Exit 8</h2>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                  Play Exit 8
+                </h2>
                 <p className="mt-3 text-sm leading-6 text-stone-700">
-                  Walk a looping corridor in a Three.js prototype and judge whether an anomaly is present.
+                  Walk a looping corridor in a Three.js prototype and judge
+                  whether an anomaly is present.
                 </p>
               </Link>
             </div>

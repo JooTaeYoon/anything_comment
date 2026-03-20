@@ -45,6 +45,7 @@ export default function Exit8Page() {
     sign: THREE.Mesh;
     signFrame: THREE.Mesh;
     light: THREE.PointLight;
+    figure: THREE.Group;
   } | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const corridorStateRef = useRef<CorridorState>({ anomaly: "none", hasAnomaly: false });
@@ -58,6 +59,7 @@ export default function Exit8Page() {
   const [corridorState, setCorridorState] = useState<CorridorState>({ anomaly: "none", hasAnomaly: false });
 
   const distanceText = useMemo(() => `${progress} / ${GOAL}`, [progress]);
+  const currentSampleText = useMemo(() => ANOMALY_LABELS[corridorState.anomaly], [corridorState.anomaly]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -169,6 +171,31 @@ export default function Exit8Page() {
     sign.position.set(0, 3.35, -13.64);
     scene.add(sign);
 
+    const figure = new THREE.Group();
+    const figureBody = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.56, 2.1, 6, 12),
+      new THREE.MeshStandardMaterial({ color: "#05070b", roughness: 0.85 }),
+    );
+    figureBody.position.set(0, 2.15, -3.6);
+    figure.add(figureBody);
+
+    const figureHead = new THREE.Mesh(
+      new THREE.SphereGeometry(0.46, 20, 20),
+      new THREE.MeshStandardMaterial({ color: "#0b0f16", roughness: 0.9 }),
+    );
+    figureHead.position.set(0, 3.8, -3.6);
+    figure.add(figureHead);
+
+    const figureShadow = new THREE.Mesh(
+      new THREE.CircleGeometry(1.05, 24),
+      new THREE.MeshBasicMaterial({ color: "#000000", transparent: true, opacity: 0.28 }),
+    );
+    figureShadow.rotation.x = -Math.PI / 2;
+    figureShadow.position.set(0, 0.02, -3.6);
+    figure.add(figureShadow);
+    figure.visible = false;
+    scene.add(figure);
+
     corridorRef.current = {
       leftDoor,
       rightDoor,
@@ -176,6 +203,7 @@ export default function Exit8Page() {
       sign,
       signFrame,
       light: ceilingLight,
+      figure,
     };
 
     const resize = () => {
@@ -203,8 +231,11 @@ export default function Exit8Page() {
       currentCamera.position.y = 1.8 + Math.cos(elapsed * 0.8) * 0.02;
       currentCamera.lookAt(0, 1.8, -8);
 
-      const flicker = corridorStateRef.current.anomaly === "redLight" ? 0.5 + Math.sin(elapsed * 18) * 0.35 : 1;
+      const isRedLight = corridorStateRef.current.anomaly === "redLight";
+      const flicker = isRedLight ? 0.5 + Math.sin(elapsed * 18) * 0.35 : 1;
       corridor.light.intensity = 1.2 * flicker;
+      corridor.figure.position.x = Math.sin(elapsed * 0.6) * 0.06;
+      corridor.figure.visible = isRedLight && flicker < 0.42;
       currentRenderer.render(currentScene, currentCamera);
       animationFrameRef.current = window.requestAnimationFrame(animate);
     };
@@ -236,6 +267,8 @@ export default function Exit8Page() {
     corridor.poster.visible = true;
     corridor.signFrame.scale.set(1, 1, 1);
     corridor.sign.scale.set(1, 1, 1);
+    corridor.figure.visible = false;
+    corridor.figure.position.set(0, 0, 0);
     corridor.light.color.set("#dbe4ff");
 
     switch (corridorState.anomaly) {
@@ -326,16 +359,16 @@ export default function Exit8Page() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#1a1f31_0%,#0b1019_55%,#040507_100%)] px-3 py-4 text-white sm:px-6 sm:py-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 sm:gap-6">
-        <section className="rounded-[30px] border border-white/10 bg-white/6 p-5 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur sm:p-8">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#1a1f31_0%,#0b1019_55%,#040507_100%)] px-3 py-3 pb-32 text-white sm:px-6 sm:py-8 sm:pb-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 sm:gap-6">
+        <section className="rounded-[26px] border border-white/10 bg-white/6 p-4 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur sm:rounded-[30px] sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
               <p className="text-sm font-semibold uppercase tracking-[0.34em] text-cyan-200">
                 3D Corridor Prototype
               </p>
               <div className="space-y-2">
-                <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Exit 8 Inspired</h1>
+                <h1 className="text-3xl font-black tracking-tight sm:text-5xl">Exit 8 Inspired</h1>
                 <p className="max-w-2xl text-sm leading-6 text-white/70 sm:text-base">
                   A Three.js web prototype focused on observation, repeated corridors, and deciding
                   whether to proceed or turn back.
@@ -361,26 +394,26 @@ export default function Exit8Page() {
           </div>
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-          <div className="rounded-[32px] border border-white/10 bg-white/6 p-3 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur sm:p-5">
-            <div className="overflow-hidden rounded-[28px] border border-white/8 bg-black">
-              <div ref={mountRef} className="h-[360px] w-full sm:h-[520px]" />
+        <section className="grid gap-3 xl:grid-cols-[1.25fr_0.75fr] sm:gap-4">
+          <div className="rounded-[26px] border border-white/10 bg-white/6 p-2 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur sm:rounded-[32px] sm:p-5">
+            <div className="overflow-hidden rounded-[22px] border border-white/8 bg-black sm:rounded-[28px]">
+              <div ref={mountRef} className="h-[280px] w-full sm:h-[520px]" />
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <section className="rounded-[30px] border border-white/10 bg-white/6 p-5 backdrop-blur">
-              <div className="flex flex-wrap gap-2 text-sm font-semibold">
-                <div className="rounded-full bg-white/8 px-4 py-2">Distance {distanceText}</div>
-                <div className="rounded-full bg-white/8 px-4 py-2">Attempts {attempts}</div>
-                <div className="rounded-full bg-white/8 px-4 py-2">
-                  Current sample {ANOMALY_LABELS[corridorState.anomaly]}
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <section className="rounded-[26px] border border-white/10 bg-white/6 p-4 backdrop-blur sm:rounded-[30px] sm:p-5">
+              <div className="flex flex-wrap gap-2 text-xs font-semibold sm:text-sm">
+                <div className="rounded-full bg-white/8 px-3 py-2 sm:px-4">Distance {distanceText}</div>
+                <div className="rounded-full bg-white/8 px-3 py-2 sm:px-4">Attempts {attempts}</div>
+                <div className="rounded-full bg-white/8 px-3 py-2 sm:px-4">
+                  Sample {currentSampleText}
                 </div>
               </div>
               <p className="mt-4 text-sm leading-6 text-white/72">{status}</p>
             </section>
 
-            <section className="rounded-[30px] border border-white/10 bg-white/6 p-5 backdrop-blur">
+            <section className="hidden rounded-[30px] border border-white/10 bg-white/6 p-5 backdrop-blur sm:block">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
                 Decision
               </p>
@@ -403,17 +436,35 @@ export default function Exit8Page() {
               </div>
             </section>
 
-            <section className="rounded-[30px] border border-white/10 bg-white/6 p-5 backdrop-blur">
+            <section className="rounded-[26px] border border-white/10 bg-white/6 p-4 backdrop-blur sm:rounded-[30px] sm:p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
                 Rule
               </p>
-              <ol className="mt-3 space-y-2 text-sm leading-6 text-white/72">
-                <li>1. Study the corridor for anything off.</li>
-                <li>2. If the corridor looks normal, choose `Proceed`.</li>
-                <li>3. If you notice an anomaly, choose `Turn Back`.</li>
-                <li>4. Reach section 8 without making a mistake.</li>
-              </ol>
+              <div className="mt-3 space-y-2 text-sm leading-6 text-white/72">
+                <p>Normal corridor: Proceed.</p>
+                <p>Anything strange: Turn Back.</p>
+                <p>Reach section 8 without mistakes.</p>
+              </div>
             </section>
+          </div>
+        </section>
+
+        <section className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#06080dcc] p-3 backdrop-blur sm:hidden">
+          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => submitChoice(false)}
+              className="inline-flex h-16 items-center justify-center rounded-[22px] border border-white/15 bg-white/8 text-base font-black text-white transition active:scale-[0.98]"
+            >
+              Turn Back
+            </button>
+            <button
+              type="button"
+              onClick={() => submitChoice(true)}
+              className="inline-flex h-16 items-center justify-center rounded-[22px] bg-cyan-300 text-base font-black text-stone-950 transition active:scale-[0.98]"
+            >
+              Proceed
+            </button>
           </div>
         </section>
       </div>
